@@ -24,8 +24,9 @@ var (
 )
 
 func init() {
-	file, _ = os.OpenFile("op.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
+	file, _ = os.OpenFile("server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
 	defer file.Close()
+	log.SetOutput(file)
 	log.SetPrefix("TRACE: ")
 	traceChucksumMap = make(map[string]string)
 }
@@ -105,28 +106,16 @@ func sortAndJoin(set map[string]void) string {
 }
 
 func sendCheckSum() bool {
-	file5, _ := os.OpenFile("checksum_Origin.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
-	defer file5.Close()
-	for _,v := range traceChunksumOriginMap{
-		fmt.Fprintln(file5,v)
-	}
-
 	jsonStr,err := json.Marshal(traceChucksumMap)
-	// test
-	file3, _ := os.OpenFile("checksum.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
-	defer file.Close()
-	fmt.Fprintln(file3,string(jsonStr))
-
-
 
 	if err != nil {
 		log.Fatalln("sendCheckSum.err", err)
 		return false
 	}
 	reqUrl := fmt.Sprintf("http://localhost:%s/api/finished", utils.DataSourcePort)
-	fmt.Println(reqUrl)
-	fmt.Println(utils.DataSourcePort)
-	time.Sleep(5 * time.Second)
+
+	// todo:这个能取消么
+	time.Sleep(2 * time.Second)
 	_, err = http.PostForm(reqUrl, url.Values{"result": {string(jsonStr)}})
 	if err != nil {
 		log.Fatalln("sendCheckSum err", err)
@@ -159,11 +148,7 @@ func getWrongTrace(traceIdListStr string, port string, batchPos int) map[string]
 
 	body, _ := ioutil.ReadAll(resp.Body) // 短resp时的读法
 	var resultMap map[string][]string
-	err = json.Unmarshal([]byte(body), &resultMap)
-
-	file, _ := os.OpenFile("getWrongTrace.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
-	defer file.Close()
-	fmt.Fprintln(file,string(body))
+	err = json.Unmarshal(body, &resultMap)
 
 	if err != nil {
 		log.Fatalf("getWrongTrace json unmarshal err=%v,str=%v\n", err, string(body))

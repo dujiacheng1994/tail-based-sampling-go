@@ -27,7 +27,7 @@ var (
 )
 
 func init() {
-	file, _ := os.OpenFile("op.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
+	file, _ := os.OpenFile("client.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
 	defer file.Close()
 	log.SetOutput(file) //设置输出流
 	log.SetPrefix("TRACE: ")
@@ -86,7 +86,6 @@ func processData() {
 			}
 		}
 		if count%BATCH_SIZE == 0 {
-			fmt.Println(pos)
 			pos++
 			if pos >= BATCH_COUNT {
 				pos = 0
@@ -116,7 +115,7 @@ func processData() {
 			batchPos := count/BATCH_SIZE - 1
 			updateWrongTraceId(badTraceIdList, int(batchPos))
 			badTraceIdList = make(map[string]bool)
-			fmt.Println("suc to updateBadTraceId, batchPos:", batchPos)
+			log.Println("suc to updateBadTraceId, batchPos:", batchPos)
 		}
 	}
 	updateWrongTraceId(badTraceIdList, (int)(count/BATCH_SIZE-1))
@@ -140,7 +139,7 @@ func updateWrongTraceId(badTraceIdList map[string]bool, batchPos int) {
 		list = append(list, k)
 	}
 	jsonStr, _ := json.Marshal(list)
-	fmt.Println("updateBadTraceId, json:" + string(jsonStr) + ", batch:" + strconv.Itoa(batchPos))
+	log.Println("updateBadTraceId, json:" + string(jsonStr) + ", batch:" + strconv.Itoa(batchPos))
 
 	_, err := http.PostForm("http://localhost:8002/setWrongTraceId", url.Values{"traceIdList": {string(jsonStr)}, "batchPos": {strconv.Itoa(batchPos)}})
 	if err != nil {
@@ -149,7 +148,7 @@ func updateWrongTraceId(badTraceIdList map[string]bool, batchPos int) {
 }
 
 func getWrongTracing(traceIdListStr string, batchPos int) string {
-	//fmt.Printf("getWrongTracing, batchPos:%d, wrongTraceIdList:\n %s\n", batchPos, traceIdListStr)
+	log.Printf("getWrongTracing, batchPos:%d, wrongTraceIdList:\n %s\n", batchPos, traceIdListStr)
 	var traceIdList []string
 	err := json.Unmarshal([]byte(traceIdListStr), &traceIdList)
 	if err != nil {
@@ -189,7 +188,6 @@ func getWrongTraceWithBatch(batchPos, pos int, traceIdList []string, wrongTraceM
 	for _, traceId := range traceIdList {
 		v, ok := traceMap.Load(traceId)
 		if !ok {
-			//fmt.Println("fail to get wrongTraceMap from traceId:", traceId)
 			continue
 		}
 		spanList, _ := v.([]string)
@@ -201,9 +199,8 @@ func getWrongTraceWithBatch(batchPos, pos int, traceIdList []string, wrongTraceM
 		} else {
 			wrongTraceMap[traceId] = spanList
 		}
-		// output spanlist to check 纯粹为了检查！
 		spanListStr := strings.Join(spanList, "\n")
-		fmt.Printf("\ngetWrongTracing, batchPos:%d, pos:%d, traceId:%s, spanList:\n %s", batchPos, pos, traceId, spanListStr)
+		log.Printf("\ngetWrongTracing, batchPos:%d, pos:%d, traceId:%s, spanList:\n %s", batchPos, pos, traceId, spanListStr)
 		//}
 	}
 }

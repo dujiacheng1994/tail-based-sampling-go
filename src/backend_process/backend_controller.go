@@ -53,7 +53,7 @@ func setWrongTraceIdHandler(w http.ResponseWriter, req *http.Request) {
 	traceIdBatch.processCount = traceIdBatch.processCount + 1
 	mu.Unlock()
 
-	fmt.Printf("setWrongTraceId had called, batchPos:%v, traceIdList:%v,processcount:%v\n", batchPos, traceIdListStr,traceIdBatch.processCount)
+	log.Printf("setWrongTraceId had called, batchPos:%v, traceIdList:%v,processcount:%v\n", batchPos, traceIdListStr,traceIdBatch.processCount)
 
 	traceIdBatch.traceIdList = append(traceIdBatch.traceIdList, traceIdList...)
 	w.Write([]byte("suc"))
@@ -89,7 +89,6 @@ func getFinishedBatch() *TraceIdBatch {
 	}
 	nextBatch := traceIdBatchList[next]
 	currentBatch := traceIdBatchList[currentBatchPos]
-	//fmt.Printf("nextBatch:%v,processcnt:%v,curBatch:%v,processcnt:%v\n",nextBatch.batchPos,nextBatch.processCount,currentBatch.batchPos,currentBatch.processCount)
 	// when client process is finished, or then next trace batch is finished. to get checksum for wrong traces.
 	if (finishProcessCount >= utils.PROCESS_COUNT && currentBatch.batchPos > 0) ||
 		(nextBatch.processCount >= utils.PROCESS_COUNT && currentBatch.processCount >= utils.PROCESS_COUNT) {
