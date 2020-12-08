@@ -13,7 +13,6 @@ func init() {
 }
 
 func GetWrongTraceHandler(w http.ResponseWriter, req *http.Request) {
-	//fmt.Println("getWrongTrace.req=",req)
 	traceIdListStr := req.FormValue("traceIdList")
 	batchPosStr := req.FormValue("batchPos")
 	batchPos, err := strconv.Atoi(batchPosStr)

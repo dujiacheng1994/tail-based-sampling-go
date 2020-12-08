@@ -72,9 +72,6 @@ func processData() {
 			spanList := v.([]string)
 			spanList = append(spanList, lineStr)
 			traceMap.Store(traceId, spanList) // 需要修改后，再把值存回去，单线程时可以用数组指针的形式直接改，但多线程不行，否则失去了用sync.Map的意义
-			// 测试是否成功插入
-			//span, _ := batchTraceList[pos].Load(traceId)
-			//fmt.Println("traceId:", traceId, "spanList:", span)
 			mu.Unlock() // 用于保证事务的xx性？不然spanList存进去时，可能这期间已经traceMap更新了，形成了覆盖写
 
 			if len(cols) > 8 {
@@ -120,11 +117,6 @@ func processData() {
 			updateWrongTraceId(badTraceIdList, int(batchPos))
 			badTraceIdList = make(map[string]bool)
 			fmt.Println("suc to updateBadTraceId, batchPos:", batchPos)
-
-			// test
-			//if pos == 2 {
-			//	time.Sleep(time.Hour)
-			//}
 		}
 	}
 	updateWrongTraceId(badTraceIdList, (int)(count/BATCH_SIZE-1))
@@ -193,16 +185,6 @@ func getWrongTracing(traceIdListStr string, batchPos int) string {
 func getWrongTraceWithBatch(batchPos, pos int, traceIdList []string, wrongTraceMap map[string][]string) {
 	// donot lock traceMap,  traceMap may be clear anytime.
 	traceMap := batchTraceList[batchPos]
-
-	//test
-	//fmt.Println("print traceMap", "pos:", batchPos)
-	//fmt.Println(traceMap)
-	//fmt.Println(traceMap.Load("44eddbffae8ee745"))
-	//traceMap.Range(func(key, value interface{}) bool {
-	//	log.Println(key, "=", value)
-	//	fmt.Println(key, "=", value)
-	//	return true
-	//})
 
 	for _, traceId := range traceIdList {
 		v, ok := traceMap.Load(traceId)

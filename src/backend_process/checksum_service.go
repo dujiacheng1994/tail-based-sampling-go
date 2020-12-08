@@ -18,7 +18,6 @@ import (
 type void struct{}
 
 var (
-	//traceChucksumMap sync.Map
 	traceChucksumMap map[string]string
 	traceChunksumOriginMap map[string]string
 	file *os.File
@@ -28,10 +27,7 @@ func init() {
 	file, _ = os.OpenFile("op.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
 	defer file.Close()
 	log.SetPrefix("TRACE: ")
-	//traceChucksumMap = sync.Map{}
 	traceChucksumMap = make(map[string]string)
-	traceChunksumOriginMap = make(map[string]string)
-
 }
 
 func Start() {
@@ -51,8 +47,6 @@ func Run() {
 			}
 			time.Sleep(10 * time.Millisecond)
 			continue
-		} else {
-			//fmt.Printf("handling Batch pos:%v, traceIdList:%v \n, ", traceIdBatch.batchPos, traceIdBatch.traceIdList)
 		}
 		// 应该不至于有重的吧...会有的！因为是3个batch里搜的？比如某个traceId在batch_6，会从456，567，678中获取wrongTraceList来合并
 		fmap := make(map[string]map[string]void) //Map<String, Set<String>> map = new HashMap<>(); 这是总的wrongTrace的map，key为traceId! processMap是每一次查的，要汇入到fmap中
@@ -80,8 +74,6 @@ func Run() {
 		for traceId, spanSet := range fmap {
 			spans := sortAndJoin(spanSet)
 			traceChucksumMap[traceId] = utils.MD5(spans)
-			traceChunksumOriginMap[traceId] = spans
-			//fmt.Println("traceChucksumMap:",traceId,"=",traceChucksumMap[traceId])
 		}
 	}
 }
@@ -165,25 +157,13 @@ func getWrongTrace(traceIdListStr string, port string, batchPos int) map[string]
 		log.Fatalln("getWrongTrace err", err)
 	}
 
-	// 如果不是分行的，就别这么读了？
-	//br := bufio.NewReader(resp.Body)
-	//for {
-	//	lineStr, err := br.ReadString('\n')
-	//	if err == io.EOF {
-	//		break
-	//	}
-	//	body += lineStr
-	//}
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := ioutil.ReadAll(resp.Body) // 短resp时的读法
 	var resultMap map[string][]string
 	err = json.Unmarshal([]byte(body), &resultMap)
 
 	file, _ := os.OpenFile("getWrongTrace.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
 	defer file.Close()
 	fmt.Fprintln(file,string(body))
-
-	//fmt.Printf("getWrongTrace,batchPos:%v,\nresp:%v\n",batchPos,resultMap)
-	//fmt.Fprintf(file,"getWrongTrace,batchPos:%v,\nresp:%v\n",batchPos,resultMap)
 
 	if err != nil {
 		log.Fatalf("getWrongTrace json unmarshal err=%v,str=%v\n", err, string(body))
