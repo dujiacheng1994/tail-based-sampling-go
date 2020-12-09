@@ -1,0 +1,1 @@
+java -Dserver.port=9000 -DcheckSumPath=/Users/dujiacheng.jason/Documents/AliCompetition/checkSumSmall.data -jar /Users/dujiacheng.jason/Documents/AliCompetition/scoring-1.0-SNAPSHOT.jar

@@ -20,7 +20,6 @@ var (
 )
 
 func init() {
-	log.SetPrefix("TRACE: ")
 	for i := 0; i < BATCH_COUNT; i++ {
 		traceIdBatchList = append(traceIdBatchList, &TraceIdBatch{})
 	}

@@ -27,10 +27,6 @@ var (
 )
 
 func init() {
-	file, _ := os.OpenFile("client.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
-	defer file.Close()
-	log.SetOutput(file) //设置输出流
-	log.SetPrefix("TRACE: ")
 	batchTraceListNotEmpty = make([]bool, BATCH_COUNT)
 	for i := 0; i < BATCH_COUNT; i++ {
 		batchTraceList = append(batchTraceList, &sync.Map{})

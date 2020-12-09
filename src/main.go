@@ -12,10 +12,14 @@ import (
 )
 
 func init(){
-	log.SetPrefix("TRACE: ")
 }
 
 func main() {
+	//log
+	file, _ := os.OpenFile("../log/processing.log", os.O_RDWR|os.O_CREATE, 0666) //打开日志文件，不存在则创建
+	defer file.Close()
+	log.SetOutput(file) //设置输出流
+	log.SetFlags(log.Lshortfile)
 	// common controller
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/ready", readyHandler)

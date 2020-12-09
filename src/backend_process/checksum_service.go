@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,15 +18,9 @@ type void struct{}
 
 var (
 	traceChucksumMap map[string]string
-	traceChunksumOriginMap map[string]string
-	file *os.File
 )
 
 func init() {
-	file, _ = os.OpenFile("server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666) //打开日志文件，不存在则创建
-	defer file.Close()
-	log.SetOutput(file)
-	log.SetPrefix("TRACE: ")
 	traceChucksumMap = make(map[string]string)
 }
 

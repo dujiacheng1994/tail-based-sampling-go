@@ -2,13 +2,11 @@ package client_process
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
 
 func init() {
-	log.SetPrefix("TRACE: ")
 	http.HandleFunc("/getWrongTrace", GetWrongTraceHandler)
 }
 
