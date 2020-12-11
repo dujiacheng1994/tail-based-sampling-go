@@ -12,7 +12,6 @@ import (
 )
 
 func init(){
-	log.SetPrefix("TRACE: ")
 }
 
 func main() {

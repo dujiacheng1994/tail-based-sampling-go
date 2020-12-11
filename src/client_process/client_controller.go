@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
 func init() {
-	log.SetPrefix("TRACE: ")
+	//log
+	file, _ := os.OpenFile("../log/client.log", os.O_RDWR|os.O_CREATE, 0666) //打开日志文件，不存在则创建
+	log.SetOutput(file) //设置输出流
+	log.SetFlags(log.Lshortfile)
+
 	http.HandleFunc("/getWrongTrace", GetWrongTraceHandler)
 }
 
 func GetWrongTraceHandler(w http.ResponseWriter, req *http.Request) {
-	//fmt.Println("getWrongTrace.req=",req)
 	traceIdListStr := req.FormValue("traceIdList")
 	batchPosStr := req.FormValue("batchPos")
 	batchPos, err := strconv.Atoi(batchPosStr)

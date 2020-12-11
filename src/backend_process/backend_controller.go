@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 )
@@ -20,7 +21,12 @@ var (
 )
 
 func init() {
-	log.SetPrefix("TRACE: ")
+	//log
+	file, _ := os.OpenFile("../log/server.log", os.O_RDWR|os.O_CREATE, 0666) //打开日志文件，不存在则创建
+	log.SetOutput(file) //设置输出流
+	log.SetFlags(log.Lshortfile)
+
+
 	for i := 0; i < BATCH_COUNT; i++ {
 		traceIdBatchList = append(traceIdBatchList, &TraceIdBatch{})
 	}
@@ -42,20 +48,22 @@ func setWrongTraceIdHandler(w http.ResponseWriter, req *http.Request) {
 		fmt.Println("SetWrongTraceIdHandler json unmarshal fail, str:", traceIdListStr)
 	}
 
+	// todo : 此处会并发写，要加锁！！
+	mu.Lock()
 	traceIdBatch := traceIdBatchList[pos]  // 注意，此处不像java引用拷贝，如果[]TraceIdBatch类型，就是值拷贝！所以不好
 	if traceIdBatch.batchPos != 0 && traceIdBatch.batchPos != batchPos {
 		fmt.Println("overwrite traceId batch when call setWrongTraceId")
 	}
 	traceIdBatch.batchPos = batchPos
-	// todo : 此处会并发写，要加锁！！
-	mu.Lock()
 
 	traceIdBatch.processCount = traceIdBatch.processCount + 1
-	mu.Unlock()
 
-	fmt.Printf("setWrongTraceId had called, batchPos:%v, traceIdList:%v,processcount:%v\n", batchPos, traceIdListStr,traceIdBatch.processCount)
+	log.Printf("setWrongTraceId had called, batchPos:%v, traceIdList:%v,processcount:%v\n", batchPos, traceIdListStr,traceIdBatch.processCount)
 
 	traceIdBatch.traceIdList = append(traceIdBatch.traceIdList, traceIdList...)
+
+	mu.Unlock()
+
 	w.Write([]byte("suc"))
 }
 
@@ -89,7 +97,6 @@ func getFinishedBatch() *TraceIdBatch {
 	}
 	nextBatch := traceIdBatchList[next]
 	currentBatch := traceIdBatchList[currentBatchPos]
-	//fmt.Printf("nextBatch:%v,processcnt:%v,curBatch:%v,processcnt:%v\n",nextBatch.batchPos,nextBatch.processCount,currentBatch.batchPos,currentBatch.processCount)
 	// when client process is finished, or then next trace batch is finished. to get checksum for wrong traces.
 	if (finishProcessCount >= utils.PROCESS_COUNT && currentBatch.batchPos > 0) ||
 		(nextBatch.processCount >= utils.PROCESS_COUNT && currentBatch.processCount >= utils.PROCESS_COUNT) {
