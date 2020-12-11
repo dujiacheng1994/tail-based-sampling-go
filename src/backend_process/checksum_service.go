@@ -111,6 +111,7 @@ func sendCheckSum() bool {
 	time.Sleep(2 * time.Second)
 	_, err = http.PostForm(reqUrl, url.Values{"result": {string(jsonStr)}})
 	if err != nil {
+		fmt.Println("sendCheckSum err", err)
 		log.Fatalln("sendCheckSum err", err)
 		return false
 	}
