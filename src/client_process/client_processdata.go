@@ -206,9 +206,9 @@ func getPath() string {
 	port, _ := strconv.Atoi(args[1])
 	path := ""
 	if port == 8000 {
-		path = "http://localhost:8080/trace1.data"
+		path = "http://localhost:8080/trace1small.data"
 	} else if port == 8001 {
-		path = "http://localhost:8080/trace2.data"
+		path = "http://localhost:8080/trace2small.data"
 	}
 	fmt.Println("getPath:", path)
 	return path

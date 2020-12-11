@@ -11,17 +11,18 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type void struct{}
 
 var (
-	traceChucksumMap map[string]string
+	traceChucksumMap *sync.Map
 )
 
 func init() {
-	traceChucksumMap = make(map[string]string)
+	traceChucksumMap = &sync.Map{}
 }
 
 func Start() {
@@ -67,7 +68,7 @@ func Run() {
 
 		for traceId, spanSet := range fmap {
 			spans := sortAndJoin(spanSet)
-			traceChucksumMap[traceId] = utils.MD5(spans)
+			traceChucksumMap.Store(traceId,utils.MD5(spans))
 		}
 	}
 }
@@ -99,7 +100,12 @@ func sortAndJoin(set map[string]void) string {
 }
 
 func sendCheckSum() bool {
-	jsonStr,err := json.Marshal(traceChucksumMap)
+	resultMap := make(map[string]string)
+	traceChucksumMap.Range(func(key, value interface{}) bool {
+		resultMap[key.(string)] = value.(string)
+		return true
+	})
+	jsonStr,err := json.Marshal(resultMap)
 
 	if err != nil {
 		log.Fatalln("sendCheckSum.err", err)
